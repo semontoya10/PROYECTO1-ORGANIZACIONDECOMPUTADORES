@@ -1,0 +1,48 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/1/Not.hdl
+/**
+ * Not gate:
+ * if (in) out = 0, else out = 1
+ */
+CHIP ModCounter {
+    IN  clk, rst, load;
+    IN  init[16];
+    IN  N[16];
+    OUT out[16];
+    OUT wrap;
+
+    PARTS:
+
+    // Valor actual del contador
+    Register(in=next, load=true, out=curr);
+
+    // Incremento normal
+    Inc16(in=curr, out=inc);
+
+    // ------- calcular N-1 --------
+    // N-1 = N + (-1)
+    Not16(in=false16, out=allOnes);   // 1111...1111 = -1
+    Add16(a=N, b=allOnes, out=Nminus1);
+
+    // -------- comparar curr == N-1 --------
+    Eq16(a=curr, b=Nminus1, out=reachMax);
+
+    // wrap se activa cuando llega a N-1
+    And(a=reachMax, b=true, out=wrap);
+
+    // -------- seleccionar siguiente valor --------
+
+    // si reachMax → 0
+    Mux16(a=inc, b=false16, sel=reachMax, out=afterWrap);
+
+    // si load → init
+    Mux16(a=afterWrap, b=init, sel=load, out=afterLoad);
+
+    // si rst → 0
+    Mux16(a=afterLoad, b=false16, sel=rst, out=next);
+
+    // salida
+    Or16(a=curr, b=false16, out=out);
+}

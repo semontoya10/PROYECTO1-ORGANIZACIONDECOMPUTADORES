@@ -1,0 +1,40 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/1/And.hdl
+/**
+ * And gate:
+ * if (a and b) out = 1, else out = 0 
+ */
+CHIP EvenParity16 {
+    IN  a[16];
+    OUT p;
+
+    PARTS:
+
+    // Nivel 1
+    Xor(a=a[0],  b=a[1],  out=x0);
+    Xor(a=a[2],  b=a[3],  out=x1);
+    Xor(a=a[4],  b=a[5],  out=x2);
+    Xor(a=a[6],  b=a[7],  out=x3);
+    Xor(a=a[8],  b=a[9],  out=x4);
+    Xor(a=a[10], b=a[11], out=x5);
+    Xor(a=a[12], b=a[13], out=x6);
+    Xor(a=a[14], b=a[15], out=x7);
+
+    // Nivel 2
+    Xor(a=x0, b=x1, out=y0);
+    Xor(a=x2, b=x3, out=y1);
+    Xor(a=x4, b=x5, out=y2);
+    Xor(a=x6, b=x7, out=y3);
+
+    // Nivel 3
+    Xor(a=y0, b=y1, out=z0);
+    Xor(a=y2, b=y3, out=z1);
+
+    // Nivel final
+    Xor(a=z0, b=z1, out=oddParity);
+
+    // Paridad PAR = NOT(paridad impar)
+    Not(in=oddParity, out=p);
+}
