@@ -1,0 +1,42 @@
+# Proyecto 2: Plataforma de Hardware Hack - Documento de Diseño
+
+## 1. Descripción General
+El objetivo del Proyecto 2 es construir la plataforma de hardware del computador Hack, integrando la Unidad Aritmético-Lógica (ALU), la Unidad Central de Procesamiento (CPU) y el sistema de Memoria para formar una computadora funcional capaz de ejecutar código máquina.
+
+## 2. Arquitectura del Sistema
+
+### 2.1 Unidad Aritmético-Lógica (ALU)
+La ALU es el núcleo computacional. Realiza operaciones aritméticas (suma) y lógicas (AND) sobre dos entradas de 16 bits.
+- **Entradas**: x[16], y[16] y 6 bits de control (zx, nx, zy, ny, f, no).
+- **Salidas**: out[16], zr (zero), ng (negative).
+
+### 2.2 Memoria (Memory)
+Implementa el espacio de direccionamiento de datos de 32K.
+- **RAM16K**: Direcciones 0 a 16383.
+- **Screen**: Mapa de bits de la pantalla (16384 a 24575).
+- **Keyboard**: Registro del teclado (24576).
+
+### 2.3 Unidad Central de Procesamiento (CPU)
+La CPU es responsable de decodificar y ejecutar las instrucciones Hack.
+- **Decodificación**: Separa el tipo de instrucción (A o C).
+- **Control**: Maneja la carga de registros A y D, la selección de la ALU y el salto del PC.
+- **PC (Program Counter)**: Determina la dirección de la siguiente instrucción basándose en las condiciones de salto (jump bits).
+
+### 2.4 Computador (Computer)
+El chip de nivel superior que conecta la CPU, la Memoria y la ROM32K.
+- La CPU lee instrucciones de la ROM.
+- La CPU lee y escribe datos en la Memoria.
+
+## 3. Diagrama de Flujo de Datos
+
+[ROM] --instrucción--> [ CPU ] <---datos---> [ Memoria ]
+                          |                      |
+                          +-----dirección--------+
+
+## 4. Detalles de Implementación (CPU)
+
+La lógica de la CPU se divide en:
+1. **Manejo del Registro A**: Carga si es una instrucción A o si el bit d1 de una instrucción C es 1.
+2. **Manejo del Registro D**: Carga si es una instrucción C y el bit d2 es 1.
+3. **Selección de Entrada ALU**: Selecciona entre el Registro A o la entrada de Memoria (M) basándose en el bit 'a' de la instrucción C.
+4. **Lógica de Salto**: Compara las banderas zr y ng de la ALU con los bits j1, j2, j3 para decidir si se carga el PC con el valor del Registro A.
