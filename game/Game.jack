@@ -1,0 +1,291 @@
+/**
+ * Game - Controlador principal del juego Maze Intelligence.
+ *
+ * Estados del juego:
+ *   STATE_MENU    = 0  → Pantalla de inicio
+ *   STATE_PLAYING = 1  → Jugando
+ *   STATE_WIN     = 2  → Jugador escapó
+ *   STATE_LOSE    = 3  → Jugador fue capturado
+ *
+ * Game Loop:
+ *   1. Leer entrada del usuario (teclado)
+ *   2. Actualizar estado del mundo (mover jugador, actualizar IA)
+ *   3. Verificar condiciones de victoria/derrota
+ *   4. Renderizar cambios
+ *   5. Esperar (Sys.wait) para controlar velocidad
+ */
+class Game {
+
+    // Constantes de estado
+    static int STATE_MENU;
+    static int STATE_PLAYING;
+    static int STATE_WIN;
+    static int STATE_LOSE;
+
+    field MazeMap maze;       // El laberinto
+    field Player  player;     // El jugador
+    field Enemy   enemy;      // El enemigo
+    field int     state;      // Estado actual del juego
+    field boolean running;    // ¿El juego sigue ejecutándose?
+    field boolean menuDrawn;  // Evita redibujar el menú cada tick
+
+    // Posiciones iniciales
+    field int playerStartRow, playerStartCol;
+    field int enemyStartRow,  enemyStartCol;
+
+    // Celda de escape (destino del jugador)
+    field int exitRow, exitCol;
+
+    /** Constructor: inicializa variables estáticas y crea objetos */
+    constructor Game new() {
+        let STATE_MENU    = 0;
+        let STATE_PLAYING = 1;
+        let STATE_WIN     = 2;
+        let STATE_LOSE    = 3;
+
+        let playerStartRow = 1;
+        let playerStartCol = 1;
+        let enemyStartRow  = 13;
+        let enemyStartCol  = 13;
+        let exitRow        = 13;
+        let exitCol        = 1;
+
+        let state   = STATE_MENU;
+        let running = true;
+        let menuDrawn = false;
+
+        let maze   = MazeMap.new();
+        let player = Player.new(playerStartRow, playerStartCol, maze);
+        // El enemigo se mueve cada 8 ticks → dificultad media
+        let enemy  = Enemy.new(enemyStartRow, enemyStartCol, maze, 8);
+
+        return this;
+    }
+
+    /** Bucle principal del juego */
+    method void run() {
+        var char key;
+
+        while (running) {
+            // Leer tecla presionada
+            let key = Keyboard.keyPressed();
+
+            // Máquina de estados
+            if (state = STATE_MENU)    { do handleMenu(key);    }
+            if (state = STATE_PLAYING) { do handlePlaying(key); }
+            if (state = STATE_WIN)     { do handleEndScreen(key); }
+            if (state = STATE_LOSE)    { do handleEndScreen(key); }
+
+            // Velocidad del game loop: 50 ms por tick
+            do Sys.wait(50);
+        }
+        return;
+    }
+
+    // ---------------------------------------------------------------
+    // Manejo de estados
+    // ---------------------------------------------------------------
+
+    /** Muestra menú y espera que el jugador presione ENTER */
+    method void handleMenu(char key) {
+        if (~menuDrawn) {
+            do drawMenu();
+            let menuDrawn = true;
+        }
+        // ENTER = 128
+        if (key = 128) {
+            do Screen.clearScreen();
+            do maze.draw();
+            do player.draw();
+            do enemy.draw();
+            do drawHUD();
+            let state = STATE_PLAYING;
+        }
+        // Q = salir
+        if ((key = 81) | (key = 113)) { let running = false; }
+        return;
+    }
+
+    /** Procesa input y actualiza el mundo durante el juego */
+    method void handlePlaying(char key) {
+        // Teclas de flecha: 130=izq, 131=der, 132=arr, 133=aba
+        // Mapeo: 1=arriba, 2=abajo, 3=izquierda, 4=derecha
+        if (key = 131) { do player.move(4); }  // Derecha
+        if (key = 130) { do player.move(3); }  // Izquierda
+        if (key = 132) { do player.move(1); }  // Arriba
+        if (key = 133) { do player.move(2); }  // Abajo
+
+        // Q = salir
+        if ((key = 81) | (key = 113)) { let running = false; }
+
+        // Actualizar IA del enemigo
+        do enemy.update(player.getRow(), player.getCol());
+
+        // Verificar condiciones de juego
+        do checkWinCondition();
+        do checkLoseCondition();
+
+        return;
+    }
+
+    /** En pantalla de fin, ENTER reinicia y Q sale */
+    method void handleEndScreen(char key) {
+        if (key = 128) { do resetGame(); }
+        if ((key = 81) | (key = 113)) { let running = false; }
+        return;
+    }
+
+    // ---------------------------------------------------------------
+    // Condiciones de victoria y derrota
+    // ---------------------------------------------------------------
+
+    /** Verifica si el jugador llegó a la celda de salida */
+    method void checkWinCondition() {
+        if ((player.getRow() = exitRow) & (player.getCol() = exitCol)) {
+            let state = STATE_WIN;
+            do drawWinScreen();
+        }
+        return;
+    }
+
+    /** Verifica si el enemigo alcanzó al jugador */
+    method void checkLoseCondition() {
+        if ((enemy.getRow() = player.getRow()) & (enemy.getCol() = player.getCol())) {
+            let state = STATE_LOSE;
+            do drawLoseScreen();
+        }
+        return;
+    }
+
+    // ---------------------------------------------------------------
+    // Reinicio
+    // ---------------------------------------------------------------
+
+    /** Reinicia el juego desde el menú */
+    method void resetGame() {
+        do enemy.dispose();
+        do player.dispose();
+
+        let player = Player.new(playerStartRow, playerStartCol, maze);
+        let enemy  = Enemy.new(enemyStartRow, enemyStartCol, maze, 8);
+
+        do Screen.clearScreen();
+        let menuDrawn = false;
+        let state = STATE_MENU;
+        return;
+    }
+
+    // ---------------------------------------------------------------
+    // Renderizado de pantallas
+    // ---------------------------------------------------------------
+
+    /** Dibuja la pantalla del menú principal */
+    method void drawMenu() {
+        do Screen.clearScreen();
+        do Output.moveCursor(3, 15);
+        do Output.printString("=== MAZE INTELLIGENCE ===");
+        do Output.moveCursor(5, 16);
+        do Output.printString("Organizacion de Computadores");
+        do Output.moveCursor(6, 22);
+        do Output.printString("Universidad EAFIT");
+        do Output.moveCursor(9, 18);
+        do Output.printString("OBJETIVO: Llega a la salida");
+        do Output.moveCursor(10, 20);
+        do Output.printString("sin que te atrape el enemigo.");
+        do Output.moveCursor(12, 18);
+        do Output.printString("CONTROLES:");
+        do Output.moveCursor(13, 18);
+        do Output.printString("  Flechas = Mover jugador");
+        do Output.moveCursor(14, 18);
+        do Output.printString("  Q       = Salir");
+        do Output.moveCursor(16, 15);
+        do Output.printString("Jugador = bloque solido negro");
+        do Output.moveCursor(17, 15);
+        do Output.printString("Enemigo = cuadro con cruz");
+        do Output.moveCursor(18, 15);
+        do Output.printString("Salida  = esquina inferior-izq");
+        do Output.moveCursor(21, 20);
+        do Output.printString("Presiona ENTER para jugar...");
+        return;
+    }
+
+    /** Dibuja el HUD en el área derecha de la pantalla */
+    method void drawHUD() {
+        do Output.moveCursor(1, 34);
+        do Output.printString("MAZE INTELLIGENCE");
+        do Output.moveCursor(3, 34);
+        do Output.printString("[P] = Tu personaje");
+        do Output.moveCursor(4, 34);
+        do Output.printString("[E] = Enemigo IA");
+        do Output.moveCursor(5, 34);
+        do Output.printString("[S] = Salida");
+        do Output.moveCursor(7, 34);
+        do Output.printString("Flechas: mover");
+        do Output.moveCursor(8, 34);
+        do Output.printString("Q: salir");
+        do Output.moveCursor(10, 34);
+        do Output.printString("Llega a la");
+        do Output.moveCursor(11, 34);
+        do Output.printString("esquina inf-izq");
+        do Output.moveCursor(12, 34);
+        do Output.printString("sin ser atrapado");
+        // Marcar la salida en el mapa
+        do markExit();
+        return;
+    }
+
+    /** Dibuja un marcador visual en la celda de salida */
+    method void markExit() {
+        var int x, y, cs;
+        let cs = maze.getCellSize();
+        let x  = exitCol * cs;
+        let y  = exitRow * cs;
+        // Dibujar borde de la salida (patrón especial)
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x + 2, y + 2, x + cs - 3, y + cs - 3);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 5, y + 5, x + cs - 6, y + cs - 6);
+        return;
+    }
+
+    /** Pantalla de victoria */
+    method void drawWinScreen() {
+        do Screen.clearScreen();
+        do Output.moveCursor(8, 20);
+        do Output.printString("**** ESCAPASTE! ****");
+        do Output.moveCursor(10, 18);
+        do Output.printString("Lograste salir del laberinto.");
+        do Output.moveCursor(12, 18);
+        do Output.printString("El enemigo no pudo atraparte.");
+        do Output.moveCursor(15, 18);
+        do Output.printString("ENTER = jugar de nuevo");
+        do Output.moveCursor(16, 18);
+        do Output.printString("Q     = salir");
+        return;
+    }
+
+    /** Pantalla de derrota */
+    method void drawLoseScreen() {
+        do Screen.clearScreen();
+        do Output.moveCursor(8, 20);
+        do Output.printString("**** FUE CAPTURADO! ****");
+        do Output.moveCursor(10, 18);
+        do Output.printString("El enemigo te atrapo.");
+        do Output.moveCursor(12, 18);
+        do Output.printString("Intenta una ruta diferente.");
+        do Output.moveCursor(15, 18);
+        do Output.printString("ENTER = jugar de nuevo");
+        do Output.moveCursor(16, 18);
+        do Output.printString("Q     = salir");
+        return;
+    }
+
+    /** Libera toda la memoria */
+    method void dispose() {
+        do player.dispose();
+        do enemy.dispose();
+        do maze.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

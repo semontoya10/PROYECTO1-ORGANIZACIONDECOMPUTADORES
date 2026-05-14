@@ -1,0 +1,394 @@
+function Enemy.new 0
+    push constant 6
+    call Memory.alloc 1
+    pop pointer 0
+    push argument 0
+    pop this 0
+    push argument 1
+    pop this 1
+    push argument 2
+    call MazeMap.getCellSize 1
+    pop this 2
+    push argument 2
+    pop this 3
+    push argument 3
+    pop this 4
+    push constant 0
+    pop this 5
+    push pointer 0
+    return
+function Enemy.getRow 0
+    push argument 0
+    pop pointer 0
+    push this 0
+    return
+function Enemy.getCol 0
+    push argument 0
+    pop pointer 0
+    push this 1
+    return
+function Enemy.manhattan 2
+    push argument 0
+    pop pointer 0
+    push argument 1
+    push argument 3
+    sub
+    pop local 0
+    push argument 2
+    push argument 4
+    sub
+    pop local 1
+    push local 0
+    push constant 0
+    lt
+    not
+    if-goto Enemy_1
+    push local 0
+    neg
+    pop local 0
+    goto Enemy_0
+label Enemy_1
+label Enemy_0
+    push local 1
+    push constant 0
+    lt
+    not
+    if-goto Enemy_3
+    push local 1
+    neg
+    pop local 1
+    goto Enemy_2
+label Enemy_3
+label Enemy_2
+    push local 0
+    push local 1
+    add
+    return
+function Enemy.update 6
+    push argument 0
+    pop pointer 0
+    push this 5
+    push constant 1
+    add
+    pop this 5
+    push this 5
+    push this 4
+    lt
+    not
+    if-goto Enemy_5
+    push constant 0
+    return
+    goto Enemy_4
+label Enemy_5
+label Enemy_4
+    push constant 0
+    pop this 5
+    push this 0
+    pop local 0
+    push this 1
+    pop local 1
+    push constant 32767
+    pop local 2
+    push this 0
+    push constant 1
+    sub
+    pop local 4
+    push this 1
+    pop local 5
+    push this 3
+    push local 4
+    push local 5
+    call MazeMap.isWalkable 3
+    not
+    if-goto Enemy_7
+    push pointer 0
+    push local 4
+    push local 5
+    push argument 1
+    push argument 2
+    call Enemy.manhattan 5
+    pop local 3
+    push local 3
+    push local 2
+    lt
+    not
+    if-goto Enemy_9
+    push local 3
+    pop local 2
+    push local 4
+    pop local 0
+    push local 5
+    pop local 1
+    goto Enemy_8
+label Enemy_9
+label Enemy_8
+    goto Enemy_6
+label Enemy_7
+label Enemy_6
+    push this 0
+    push constant 1
+    add
+    pop local 4
+    push this 1
+    pop local 5
+    push this 3
+    push local 4
+    push local 5
+    call MazeMap.isWalkable 3
+    not
+    if-goto Enemy_11
+    push pointer 0
+    push local 4
+    push local 5
+    push argument 1
+    push argument 2
+    call Enemy.manhattan 5
+    pop local 3
+    push local 3
+    push local 2
+    lt
+    not
+    if-goto Enemy_13
+    push local 3
+    pop local 2
+    push local 4
+    pop local 0
+    push local 5
+    pop local 1
+    goto Enemy_12
+label Enemy_13
+label Enemy_12
+    goto Enemy_10
+label Enemy_11
+label Enemy_10
+    push this 0
+    pop local 4
+    push this 1
+    push constant 1
+    sub
+    pop local 5
+    push this 3
+    push local 4
+    push local 5
+    call MazeMap.isWalkable 3
+    not
+    if-goto Enemy_15
+    push pointer 0
+    push local 4
+    push local 5
+    push argument 1
+    push argument 2
+    call Enemy.manhattan 5
+    pop local 3
+    push local 3
+    push local 2
+    lt
+    not
+    if-goto Enemy_17
+    push local 3
+    pop local 2
+    push local 4
+    pop local 0
+    push local 5
+    pop local 1
+    goto Enemy_16
+label Enemy_17
+label Enemy_16
+    goto Enemy_14
+label Enemy_15
+label Enemy_14
+    push this 0
+    pop local 4
+    push this 1
+    push constant 1
+    add
+    pop local 5
+    push this 3
+    push local 4
+    push local 5
+    call MazeMap.isWalkable 3
+    not
+    if-goto Enemy_19
+    push pointer 0
+    push local 4
+    push local 5
+    push argument 1
+    push argument 2
+    call Enemy.manhattan 5
+    pop local 3
+    push local 3
+    push local 2
+    lt
+    not
+    if-goto Enemy_21
+    push local 3
+    pop local 2
+    push local 4
+    pop local 0
+    push local 5
+    pop local 1
+    goto Enemy_20
+label Enemy_21
+label Enemy_20
+    goto Enemy_18
+label Enemy_19
+label Enemy_18
+    push local 0
+    push this 0
+    eq
+    push local 1
+    push this 1
+    eq
+    and
+    not
+    not
+    if-goto Enemy_23
+    push pointer 0
+    call Enemy.erase 1
+    pop temp 0
+    push local 0
+    pop this 0
+    push local 1
+    pop this 1
+    push pointer 0
+    call Enemy.draw 1
+    pop temp 0
+    goto Enemy_22
+label Enemy_23
+label Enemy_22
+    push constant 0
+    return
+function Enemy.draw 2
+    push argument 0
+    pop pointer 0
+    push this 1
+    push this 2
+    call Math.multiply 2
+    pop local 0
+    push this 0
+    push this 2
+    call Math.multiply 2
+    pop local 1
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 1
+    add
+    push local 1
+    push constant 1
+    add
+    push local 0
+    push this 2
+    add
+    push constant 2
+    sub
+    push local 1
+    push this 2
+    add
+    push constant 2
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 4
+    add
+    push local 1
+    push constant 4
+    add
+    push local 0
+    push this 2
+    add
+    push constant 5
+    sub
+    push local 1
+    push this 2
+    add
+    push constant 5
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 4
+    add
+    push local 1
+    push constant 8
+    add
+    push local 0
+    push this 2
+    add
+    push constant 5
+    sub
+    push local 1
+    push constant 8
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push local 0
+    push constant 8
+    add
+    push local 1
+    push constant 4
+    add
+    push local 0
+    push constant 8
+    add
+    push local 1
+    push this 2
+    add
+    push constant 5
+    sub
+    call Screen.drawLine 4
+    pop temp 0
+    push constant 0
+    return
+function Enemy.erase 2
+    push argument 0
+    pop pointer 0
+    push this 1
+    push this 2
+    call Math.multiply 2
+    pop local 0
+    push this 0
+    push this 2
+    call Math.multiply 2
+    pop local 1
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 1
+    add
+    push local 1
+    push constant 1
+    add
+    push local 0
+    push this 2
+    add
+    push constant 2
+    sub
+    push local 1
+    push this 2
+    add
+    push constant 2
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Enemy.dispose 0
+    push argument 0
+    pop pointer 0
+    push pointer 0
+    call Memory.deAlloc 1
+    pop temp 0
+    push constant 0
+    return

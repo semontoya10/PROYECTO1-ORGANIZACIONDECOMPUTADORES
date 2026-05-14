@@ -1,0 +1,81 @@
+/**
+ * Player - Representa al jugador humano en el laberinto.
+ *
+ * El jugador se mueve con las teclas de flecha.
+ * Se dibuja como un rectángulo blanco con borde negro (X pequeña).
+ * Coordenadas en unidades de celda (row, col).
+ */
+class Player {
+
+    field int row, col;       // Posición actual en el grid
+    field int cellSize;       // Tamaño de celda en píxeles
+    field MazeMap maze;       // Referencia al laberinto
+
+    /** Crea el jugador en la posición inicial (row, col) */
+    constructor Player new(int startRow, int startCol, MazeMap mazeRef) {
+        let row      = startRow;
+        let col      = startCol;
+        let cellSize = mazeRef.getCellSize();
+        let maze     = mazeRef;
+        return this;
+    }
+
+    /** Retorna la fila actual */
+    method int getRow() { return row; }
+
+    /** Retorna la columna actual */
+    method int getCol() { return col; }
+
+    /**
+     * Intenta mover al jugador en la dirección indicada.
+     * direction: 1=arriba, 2=abajo, 3=izquierda, 4=derecha
+     * Valida que el movimiento sea dentro del mapa y no sea un muro.
+     */
+    method void move(int direction) {
+        var int newRow, newCol;
+        let newRow = row;
+        let newCol = col;
+
+        if (direction = 1) { let newRow = row - 1; }   // Arriba
+        if (direction = 2) { let newRow = row + 1; }   // Abajo
+        if (direction = 3) { let newCol = col - 1; }   // Izquierda
+        if (direction = 4) { let newCol = col + 1; }   // Derecha
+
+        // Validar: dentro de límites y celda transitable
+        if (maze.isWalkable(newRow, newCol)) {
+            do erase();         // Borrar posición anterior
+            let row = newRow;
+            let col = newCol;
+            do draw();          // Dibujar nueva posición
+        }
+        return;
+    }
+
+    /** Dibuja el jugador como un bloque negro (distinto al fondo) */
+    method void draw() {
+        var int x, y;
+        let x = col * cellSize;
+        let y = row * cellSize;
+        // Cuerpo principal: gris (patrón alternado — en Hack solo hay B/W)
+        // Usamos un rectángulo negro más pequeño centrado
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x + 3, y + 3, x + cellSize - 4, y + cellSize - 4);
+        return;
+    }
+
+    /** Borra al jugador (pinta de blanco la celda) */
+    method void erase() {
+        var int x, y;
+        let x = col * cellSize;
+        let y = row * cellSize;
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 1, y + 1, x + cellSize - 2, y + cellSize - 2);
+        return;
+    }
+
+    /** Libera memoria */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

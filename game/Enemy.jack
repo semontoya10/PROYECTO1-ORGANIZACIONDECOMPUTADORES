@@ -1,0 +1,169 @@
+/**
+ * Enemy - Agente enemigo con Inteligencia Artificial.
+ *
+ * Estrategia: BFS simplificado con heurística de distancia Manhattan.
+ * El enemigo evalúa sus 4 vecinos y elige el que minimiza la distancia
+ * Manhattan hacia el jugador, siempre que sea una celda transitable.
+ *
+ * Esto produce un comportamiento "greedy" que lo hace moverse
+ * siempre en la dirección general del jugador, evitando muros.
+ *
+ * Para mayor dificultad, el enemigo solo se mueve cada N ticks del
+ * game loop (controlado por el campo speedDelay).
+ */
+class Enemy {
+
+    field int row, col;       // Posición actual en el grid
+    field int cellSize;       // Tamaño de celda en píxeles
+    field MazeMap maze;       // Referencia al laberinto
+    field int speedDelay;     // Ticks entre movimientos (dificultad)
+    field int tickCount;      // Contador de ticks actuales
+
+    /** Crea el enemigo en (startRow, startCol) con delay de movimiento */
+    constructor Enemy new(int startRow, int startCol, MazeMap mazeRef, int delay) {
+        let row        = startRow;
+        let col        = startCol;
+        let cellSize   = mazeRef.getCellSize();
+        let maze       = mazeRef;
+        let speedDelay = delay;
+        let tickCount  = 0;
+        return this;
+    }
+
+    /** Retorna la fila actual */
+    method int getRow() { return row; }
+
+    /** Retorna la columna actual */
+    method int getCol() { return col; }
+
+    /**
+     * Calcula la distancia Manhattan entre dos puntos.
+     * |r1 - r2| + |c1 - c2|
+     */
+    method int manhattan(int r1, int c1, int r2, int c2) {
+        var int dr, dc;
+        let dr = r1 - r2;
+        let dc = c1 - c2;
+        if (dr < 0) { let dr = -dr; }
+        if (dc < 0) { let dc = -dc; }
+        return dr + dc;
+    }
+
+    /**
+     * Actualiza la posición del enemigo usando IA.
+     * playerRow, playerCol: posición actual del jugador.
+     *
+     * Algoritmo:
+     *   1. Evalúa los 4 vecinos posibles.
+     *   2. Para cada vecino transitable, calcula distancia Manhattan al jugador.
+     *   3. Mueve al vecino con menor distancia.
+     *   4. En empate, prioriza en orden: arriba, abajo, izquierda, derecha.
+     */
+    method void update(int playerRow, int playerCol) {
+        var int bestRow, bestCol, bestDist, dist;
+        var int nr, nc;
+
+        let tickCount = tickCount + 1;
+        if (tickCount < speedDelay) { return; }  // No es turno de moverse
+        let tickCount = 0;
+
+        let bestRow  = row;
+        let bestCol  = col;
+        let bestDist = 32767;  // Valor máximo inicial
+
+        // Evaluar vecino: ARRIBA
+        let nr = row - 1;
+        let nc = col;
+        if (maze.isWalkable(nr, nc)) {
+            let dist = manhattan(nr, nc, playerRow, playerCol);
+            if (dist < bestDist) {
+                let bestDist = dist;
+                let bestRow  = nr;
+                let bestCol  = nc;
+            }
+        }
+
+        // Evaluar vecino: ABAJO
+        let nr = row + 1;
+        let nc = col;
+        if (maze.isWalkable(nr, nc)) {
+            let dist = manhattan(nr, nc, playerRow, playerCol);
+            if (dist < bestDist) {
+                let bestDist = dist;
+                let bestRow  = nr;
+                let bestCol  = nc;
+            }
+        }
+
+        // Evaluar vecino: IZQUIERDA
+        let nr = row;
+        let nc = col - 1;
+        if (maze.isWalkable(nr, nc)) {
+            let dist = manhattan(nr, nc, playerRow, playerCol);
+            if (dist < bestDist) {
+                let bestDist = dist;
+                let bestRow  = nr;
+                let bestCol  = nc;
+            }
+        }
+
+        // Evaluar vecino: DERECHA
+        let nr = row;
+        let nc = col + 1;
+        if (maze.isWalkable(nr, nc)) {
+            let dist = manhattan(nr, nc, playerRow, playerCol);
+            if (dist < bestDist) {
+                let bestDist = dist;
+                let bestRow  = nr;
+                let bestCol  = nc;
+            }
+        }
+
+        // Mover si encontró una mejor posición
+        if (~((bestRow = row) & (bestCol = col))) {
+            do erase();
+            let row = bestRow;
+            let col = bestCol;
+            do draw();
+        }
+
+        return;
+    }
+
+    /**
+     * Dibuja el enemigo como un bloque negro con patrón diferenciado.
+     * Se usa un rectángulo relleno más grande que el del jugador.
+     */
+    method void draw() {
+        var int x, y;
+        let x = col * cellSize;
+        let y = row * cellSize;
+        // Borde exterior negro
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x + 1, y + 1, x + cellSize - 2, y + cellSize - 2);
+        // Interior blanco para diferenciarlo del jugador sólido
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 4, y + 4, x + cellSize - 5, y + cellSize - 5);
+        // Cruz central negra (símbolo del enemigo)
+        do Screen.setColor(true);
+        do Screen.drawLine(x + 4, y + 8,  x + cellSize - 5, y + 8);
+        do Screen.drawLine(x + 8, y + 4,  x + 8, y + cellSize - 5);
+        return;
+    }
+
+    /** Borra al enemigo (pinta de blanco la celda) */
+    method void erase() {
+        var int x, y;
+        let x = col * cellSize;
+        let y = row * cellSize;
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 1, y + 1, x + cellSize - 2, y + cellSize - 2);
+        return;
+    }
+
+    /** Libera memoria */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

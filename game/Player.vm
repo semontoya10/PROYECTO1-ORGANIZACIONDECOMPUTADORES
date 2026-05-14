@@ -1,0 +1,178 @@
+function Player.new 0
+    push constant 4
+    call Memory.alloc 1
+    pop pointer 0
+    push argument 0
+    pop this 0
+    push argument 1
+    pop this 1
+    push argument 2
+    call MazeMap.getCellSize 1
+    pop this 2
+    push argument 2
+    pop this 3
+    push pointer 0
+    return
+function Player.getRow 0
+    push argument 0
+    pop pointer 0
+    push this 0
+    return
+function Player.getCol 0
+    push argument 0
+    pop pointer 0
+    push this 1
+    return
+function Player.move 2
+    push argument 0
+    pop pointer 0
+    push this 0
+    pop local 0
+    push this 1
+    pop local 1
+    push argument 1
+    push constant 1
+    eq
+    not
+    if-goto Player_1
+    push this 0
+    push constant 1
+    sub
+    pop local 0
+    goto Player_0
+label Player_1
+label Player_0
+    push argument 1
+    push constant 2
+    eq
+    not
+    if-goto Player_3
+    push this 0
+    push constant 1
+    add
+    pop local 0
+    goto Player_2
+label Player_3
+label Player_2
+    push argument 1
+    push constant 3
+    eq
+    not
+    if-goto Player_5
+    push this 1
+    push constant 1
+    sub
+    pop local 1
+    goto Player_4
+label Player_5
+label Player_4
+    push argument 1
+    push constant 4
+    eq
+    not
+    if-goto Player_7
+    push this 1
+    push constant 1
+    add
+    pop local 1
+    goto Player_6
+label Player_7
+label Player_6
+    push this 3
+    push local 0
+    push local 1
+    call MazeMap.isWalkable 3
+    not
+    if-goto Player_9
+    push pointer 0
+    call Player.erase 1
+    pop temp 0
+    push local 0
+    pop this 0
+    push local 1
+    pop this 1
+    push pointer 0
+    call Player.draw 1
+    pop temp 0
+    goto Player_8
+label Player_9
+label Player_8
+    push constant 0
+    return
+function Player.draw 2
+    push argument 0
+    pop pointer 0
+    push this 1
+    push this 2
+    call Math.multiply 2
+    pop local 0
+    push this 0
+    push this 2
+    call Math.multiply 2
+    pop local 1
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 3
+    add
+    push local 1
+    push constant 3
+    add
+    push local 0
+    push this 2
+    add
+    push constant 4
+    sub
+    push local 1
+    push this 2
+    add
+    push constant 4
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Player.erase 2
+    push argument 0
+    pop pointer 0
+    push this 1
+    push this 2
+    call Math.multiply 2
+    pop local 0
+    push this 0
+    push this 2
+    call Math.multiply 2
+    pop local 1
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push local 0
+    push constant 1
+    add
+    push local 1
+    push constant 1
+    add
+    push local 0
+    push this 2
+    add
+    push constant 2
+    sub
+    push local 1
+    push this 2
+    add
+    push constant 2
+    sub
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Player.dispose 0
+    push argument 0
+    pop pointer 0
+    push pointer 0
+    call Memory.deAlloc 1
+    pop temp 0
+    push constant 0
+    return

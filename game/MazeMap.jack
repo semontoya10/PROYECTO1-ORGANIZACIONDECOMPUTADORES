@@ -1,0 +1,170 @@
+/**
+ * MazeMap - Representación del laberinto como matriz 2D
+ *
+ * Tipos de celda:
+ *   0 = camino (libre)
+ *   1 = muro
+ *
+ * El laberinto es de 16x16 celdas, cada celda se renderiza
+ * como un bloque de 16x16 píxeles en la pantalla (256x256 px total).
+ */
+class MazeMap {
+
+    field Array rows;   // Array de 16 Arrays de 16 enteros
+    field int size;     // Dimensión del laberinto (16)
+    field int cellSize; // Tamaño en píxeles de cada celda (16)
+
+    /** Crea e inicializa el laberinto */
+    constructor MazeMap new() {
+        let size = 16;
+        let cellSize = 16;
+        do buildMaze();
+        return this;
+    }
+
+    /** Construye el laberinto hardcodeado (0=camino, 1=muro) */
+    method void buildMaze() {
+        var int r;
+        var Array row;
+
+        // Inicializar array de filas
+        let rows = Array.new(size);
+        let r = 0;
+        while (r < size) {
+            let rows[r] = Array.new(size);
+            let r = r + 1;
+        }
+
+        // Fila 0
+        do setRow(0,  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);
+        // Fila 1
+        do setRow(1,  1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1);
+        // Fila 2
+        do setRow(2,  1,0,1,0,1,0,1,1,1,0,1,0,1,1,0,1);
+        // Fila 3
+        do setRow(3,  1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1);
+        // Fila 4
+        do setRow(4,  1,0,1,1,1,1,1,0,1,1,1,0,1,0,1,1);
+        // Fila 5
+        do setRow(5,  1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1);
+        // Fila 6
+        do setRow(6,  1,1,1,0,1,0,1,1,1,0,1,1,1,0,1,1);
+        // Fila 7
+        do setRow(7,  1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1);
+        // Fila 8
+        do setRow(8,  1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1);
+        // Fila 9
+        do setRow(9,  1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1);
+        // Fila 10
+        do setRow(10, 1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1);
+        // Fila 11
+        do setRow(11, 1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1);
+        // Fila 12
+        do setRow(12, 1,1,1,0,1,0,1,1,1,0,1,1,1,0,1,1);
+        // Fila 13
+        do setRow(13, 1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1);
+        // Fila 14
+        do setRow(14, 1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1);
+        // Fila 15
+        do setRow(15, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);
+
+        return;
+    }
+
+    /**
+     * Helper para asignar 16 valores a una fila.
+     * Jack no soporta arrays literales, así que se hace manual.
+     */
+    method void setRow(int r, int c0, int c1, int c2, int c3,
+                                int c4, int c5, int c6, int c7,
+                                int c8, int c9, int c10, int c11,
+                                int c12, int c13, int c14, int c15) {
+        var Array row;
+        let row = rows[r];
+        let row[0]  = c0;
+        let row[1]  = c1;
+        let row[2]  = c2;
+        let row[3]  = c3;
+        let row[4]  = c4;
+        let row[5]  = c5;
+        let row[6]  = c6;
+        let row[7]  = c7;
+        let row[8]  = c8;
+        let row[9]  = c9;
+        let row[10] = c10;
+        let row[11] = c11;
+        let row[12] = c12;
+        let row[13] = c13;
+        let row[14] = c14;
+        let row[15] = c15;
+        return;
+    }
+
+    /** Retorna 1 si la celda (row, col) es muro, 0 si es camino */
+    method int getCell(int row, int col) {
+        var Array r;
+        if ((row < 0) | (row > (size - 1))) { return 1; }
+        if ((col < 0) | (col > (size - 1))) { return 1; }
+        let r = rows[row];
+        return r[col];
+    }
+
+    /** Retorna true si la celda es transitable (camino) */
+    method boolean isWalkable(int row, int col) {
+        return (getCell(row, col) = 0);
+    }
+
+    /** Retorna el tamaño del laberinto */
+    method int getSize() {
+        return size;
+    }
+
+    /** Retorna el tamaño en píxeles de cada celda */
+    method int getCellSize() {
+        return cellSize;
+    }
+
+    /**
+     * Dibuja el laberinto completo en pantalla.
+     * Muros en negro, caminos en blanco.
+     * La pantalla Hack es 512x256 píxeles.
+     * El laberinto ocupa las primeras 256 columnas (izquierda).
+     */
+    method void draw() {
+        var int r, c, x, y;
+        let r = 0;
+        while (r < size) {
+            let c = 0;
+            while (c < size) {
+                let x = c * cellSize;
+                let y = r * cellSize;
+                if (getCell(r, c) = 1) {
+                    // Muro: dibujar bloque negro
+                    do Screen.setColor(true);
+                } else {
+                    // Camino: dibujar bloque blanco
+                    do Screen.setColor(false);
+                }
+                do Screen.drawRectangle(x, y, x + cellSize - 1, y + cellSize - 1);
+                let c = c + 1;
+            }
+            let r = r + 1;
+        }
+        return;
+    }
+
+    /** Libera memoria */
+    method void dispose() {
+        var int r;
+        var Array row;
+        let r = 0;
+        while (r < size) {
+            let row = rows[r];
+            do row.dispose();
+            let r = r + 1;
+        }
+        do rows.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}
